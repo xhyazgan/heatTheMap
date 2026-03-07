@@ -16,4 +16,5 @@ public class Store
     public ICollection<DailyFootfall> DailyFootfalls { get; set; } = new List<DailyFootfall>();
     public ICollection<HeatmapData> HeatmapData { get; set; } = new List<HeatmapData>();
     public ICollection<CustomerRoute> CustomerRoutes { get; set; } = new List<CustomerRoute>();
+    public ICollection<EntryLine> EntryLines { get; set; } = new List<EntryLine>();
 }

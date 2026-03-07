@@ -25,6 +25,7 @@ builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
 // Register services
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IEntryLineService, EntryLineService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Register Ollama service with HttpClient

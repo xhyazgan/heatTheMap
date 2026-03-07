@@ -60,6 +60,7 @@ public record DetectionSubmissionDto(
     int StoreId,
     DateTime Timestamp,
     int PersonCount,
+    int ExitCount,
     int[][]? ZoneDistribution
 );
 

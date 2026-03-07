@@ -13,6 +13,7 @@ public class HeatMapDbContext : DbContext
     public DbSet<DailyFootfall> DailyFootfalls { get; set; }
     public DbSet<HeatmapData> HeatmapData { get; set; }
     public DbSet<CustomerRoute> CustomerRoutes { get; set; }
+    public DbSet<EntryLine> EntryLines { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,6 +96,22 @@ public class HeatMapDbContext : DbContext
 
             entity.HasOne(e => e.Store)
                 .WithMany(s => s.CustomerRoutes)
+                .HasForeignKey(e => e.StoreId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // EntryLine configuration
+        modelBuilder.Entity<EntryLine>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.StoreId, e.IsActive });
+
+            entity.Property(e => e.InDirection).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            entity.HasOne(e => e.Store)
+                .WithMany(s => s.EntryLines)
                 .HasForeignKey(e => e.StoreId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

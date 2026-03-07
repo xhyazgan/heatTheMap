@@ -212,7 +212,7 @@ public class AnalyticsService : IAnalyticsService
             Date = date,
             Hour = hour,
             EntryCount = dto.PersonCount,
-            ExitCount = 0,
+            ExitCount = dto.ExitCount,
             PeakOccupancy = dto.PersonCount,
             CreatedAt = DateTime.UtcNow
         };
