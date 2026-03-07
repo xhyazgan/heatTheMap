@@ -1,9 +1,11 @@
 export interface TrackedObject {
   id: number;
   centroid: [number, number];
+  previousCentroid: [number, number] | null;
   bbox: [number, number, number, number];
   disappeared: number;
-  counted: boolean;
+  hasCrossedLine: boolean;
+  entryTime: number | null;
 }
 
 export class CentroidTracker {
@@ -64,6 +66,7 @@ export class CentroidTracker {
 
       const id = objectIds[objectIdx];
       const obj = this.objects.get(id)!;
+      obj.previousCentroid = obj.centroid;
       obj.centroid = inputCentroids[inputIdx];
       obj.bbox = bboxes[inputIdx];
       obj.disappeared = 0;
@@ -98,12 +101,13 @@ export class CentroidTracker {
     this.objects.set(this.nextId, {
       id: this.nextId,
       centroid,
+      previousCentroid: null,
       bbox,
       disappeared: 0,
-      counted: true,
+      hasCrossedLine: false,
+      entryTime: null,
     });
     this.nextId++;
-    this.totalUnique++;
   }
 
   private computeCentroid(bbox: [number, number, number, number]): [number, number] {

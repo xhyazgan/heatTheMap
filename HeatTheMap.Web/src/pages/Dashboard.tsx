@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { KPIGrid } from '../components/dashboard/KPIGrid';
 import { HeatmapVisualization } from '../components/dashboard/HeatmapVisualization';
@@ -8,6 +8,7 @@ import { ZoneComparisonChart } from '../components/dashboard/ZoneComparisonChart
 import { ChatButton } from '../components/chatbot/ChatButton';
 import { ChatPanel } from '../components/chatbot/ChatPanel';
 import { DetectionPanel } from '../components/detection/DetectionPanel';
+import { EntryLineEditor } from '../components/zone/EntryLineEditor';
 import { useFilterStore } from '../stores/useFilterStore';
 import {
   useDailySummary,
@@ -17,10 +18,13 @@ import {
   useLatestHeatmap,
 } from '../hooks/useAnalytics';
 import { useSubmitDetection } from '../hooks/useDetection';
+import { useEntryLine } from '../hooks/useEntryLine';
 import { subDays, format } from 'date-fns';
+import type { EntryLineConfig as TrackerEntryLineConfig } from '../lib/directionalEntryTracker';
 
 export const Dashboard: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isEntryLineEditorOpen, setIsEntryLineEditorOpen] = useState(false);
   const { selectedStore, dateRange } = useFilterStore();
 
   // Fetch all analytics data
@@ -47,10 +51,21 @@ export const Dashboard: React.FC = () => {
   );
 
   const { data: latestHeatmap } = useLatestHeatmap(selectedStore);
+  const { data: entryLineData } = useEntryLine(selectedStore);
   const submitDetection = useSubmitDetection();
 
+  // Convert API EntryLineConfig to tracker EntryLineConfig
+  const trackerEntryLine: TrackerEntryLineConfig | null = useMemo(() => {
+    if (!entryLineData) return null;
+    return {
+      start: { x: entryLineData.startX, y: entryLineData.startY },
+      end: { x: entryLineData.endX, y: entryLineData.endY },
+      inDirection: entryLineData.inDirection as TrackerEntryLineConfig['inDirection'],
+    };
+  }, [entryLineData]);
+
   const handleSubmitDetection = useCallback(
-    (data: { storeId: number; timestamp: string; personCount: number; zoneDistribution: number[][] }) => {
+    (data: { storeId: number; timestamp: string; personCount: number; exitCount: number; zoneDistribution: number[][] }) => {
       submitDetection.mutate(data);
     },
     [submitDetection],
@@ -77,7 +92,18 @@ export const Dashboard: React.FC = () => {
 
         {/* Camera Detection and Heatmap */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DetectionPanel onSubmitDetection={handleSubmitDetection} />
+          <div>
+            <DetectionPanel
+              onSubmitDetection={handleSubmitDetection}
+              entryLine={trackerEntryLine}
+            />
+            <button
+              onClick={() => setIsEntryLineEditorOpen(true)}
+              className="mt-2 w-full px-4 py-2 text-sm font-medium rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+            >
+              Entry Line Ayarla
+            </button>
+          </div>
           <HeatmapVisualization
             data={latestHeatmap?.zoneMatrix}
             width={latestHeatmap?.gridWidth}
@@ -101,6 +127,15 @@ export const Dashboard: React.FC = () => {
       {/* Chatbot */}
       {!isChatOpen && <ChatButton onClick={() => setIsChatOpen(true)} />}
       <ChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+      {/* Entry Line Editor Modal */}
+      {isEntryLineEditorOpen && (
+        <EntryLineEditor
+          storeId={selectedStore}
+          existingLine={entryLineData}
+          onClose={() => setIsEntryLineEditorOpen(false)}
+        />
+      )}
     </Layout>
   );
 };

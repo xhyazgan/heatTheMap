@@ -14,7 +14,8 @@
       "Bash(dotnet restore:*)",
       "Bash(npx tsc:*)",
       "Bash(grep:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(dotnet ef:*)"
     ]
   }
 }

@@ -1,18 +1,21 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { usePersonDetection } from './usePersonDetection';
 import type { TrackedObject } from '../../lib/centroidTracker';
+import type { EntryLineConfig } from '../../lib/directionalEntryTracker';
 
 interface CameraFeedProps {
+  entryLine?: EntryLineConfig | null;
   onDetectionUpdate?: (
     objects: TrackedObject[],
     uniqueCount: number,
     currentCount: number,
     videoWidth: number,
     videoHeight: number,
+    exitCount: number,
   ) => void;
 }
 
-export const CameraFeed: React.FC<CameraFeedProps> = ({ onDetectionUpdate }) => {
+export const CameraFeed: React.FC<CameraFeedProps> = ({ entryLine, onDetectionUpdate }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -22,13 +25,20 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ onDetectionUpdate }) => 
     trackedObjects,
     uniqueCount,
     currentCount,
+    exitCount,
     isModelLoading,
     isDetecting,
     error,
     startDetection,
     stopDetection,
     resetCount,
+    setEntryLine,
   } = usePersonDetection(videoRef);
+
+  // Sync entry line config to tracker
+  useEffect(() => {
+    setEntryLine(entryLine ?? null);
+  }, [entryLine, setEntryLine]);
 
   const startCamera = useCallback(async () => {
     try {
@@ -52,7 +62,7 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ onDetectionUpdate }) => 
     stopDetection();
   }, [stopDetection]);
 
-  // Draw bounding boxes
+  // Draw bounding boxes and entry line
   useEffect(() => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -66,6 +76,7 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ onDetectionUpdate }) => 
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw detections
     detections.forEach((det) => {
       const [x, y, w, h] = det.bbox;
       ctx.strokeStyle = '#00FF00';
@@ -76,7 +87,51 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ onDetectionUpdate }) => 
       ctx.font = '12px monospace';
       ctx.fillText(`${Math.round(det.score * 100)}%`, x, y - 4);
     });
-  }, [detections]);
+
+    // Draw entry line overlay
+    if (entryLine) {
+      const startX = entryLine.start.x * canvas.width;
+      const startY = entryLine.start.y * canvas.height;
+      const endX = entryLine.end.x * canvas.width;
+      const endY = entryLine.end.y * canvas.height;
+
+      ctx.strokeStyle = '#00FFAA';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 4]);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw direction arrow at midpoint
+      const midX = (startX + endX) / 2;
+      const midY = (startY + endY) / 2;
+      const arrowSize = 12;
+
+      let arrowDx = 0;
+      let arrowDy = 0;
+      switch (entryLine.inDirection) {
+        case 'left-to-right': arrowDx = arrowSize; break;
+        case 'right-to-left': arrowDx = -arrowSize; break;
+        case 'top-to-bottom': arrowDy = arrowSize; break;
+        case 'bottom-to-top': arrowDy = -arrowSize; break;
+      }
+
+      ctx.fillStyle = '#00FFAA';
+      ctx.beginPath();
+      ctx.moveTo(midX + arrowDx, midY + arrowDy);
+      ctx.lineTo(midX + arrowDy / 2 - arrowDx / 2, midY - arrowDx / 2 - arrowDy / 2);
+      ctx.lineTo(midX - arrowDy / 2 - arrowDx / 2, midY + arrowDx / 2 - arrowDy / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      // Label
+      ctx.fillStyle = '#00FFAA';
+      ctx.font = '11px monospace';
+      ctx.fillText('Entry Line', startX, startY - 8);
+    }
+  }, [detections, entryLine]);
 
   // Notify parent of detection updates
   useEffect(() => {
@@ -87,9 +142,10 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ onDetectionUpdate }) => 
         currentCount,
         videoRef.current.videoWidth || 640,
         videoRef.current.videoHeight || 480,
+        exitCount,
       );
     }
-  }, [trackedObjects, uniqueCount, currentCount, onDetectionUpdate]);
+  }, [trackedObjects, uniqueCount, currentCount, exitCount, onDetectionUpdate]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -195,14 +251,18 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ onDetectionUpdate }) => 
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <div className="bg-gray-800/50 rounded px-3 py-2 text-center">
           <div className="text-xl font-bold text-white">{currentCount}</div>
           <div className="text-xs text-gray-400">Anlik</div>
         </div>
         <div className="bg-gray-800/50 rounded px-3 py-2 text-center">
           <div className="text-xl font-bold text-sky-400">{uniqueCount}</div>
-          <div className="text-xs text-gray-400">Toplam Benzersiz</div>
+          <div className="text-xs text-gray-400">Giris</div>
+        </div>
+        <div className="bg-gray-800/50 rounded px-3 py-2 text-center">
+          <div className="text-xl font-bold text-orange-400">{exitCount}</div>
+          <div className="text-xs text-gray-400">Cikis</div>
         </div>
       </div>
     </div>

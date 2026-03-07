@@ -1,11 +1,14 @@
 import type { TrackedObject } from './centroidTracker';
 
+export const GRID_WIDTH = 20;
+export const GRID_HEIGHT = 15;
+
 export function mapDetectionsToZones(
   objects: TrackedObject[],
   videoWidth: number,
   videoHeight: number,
-  gridWidth = 20,
-  gridHeight = 15,
+  gridWidth = GRID_WIDTH,
+  gridHeight = GRID_HEIGHT,
 ): number[][] {
   const matrix: number[][] = Array.from({ length: gridHeight }, () =>
     new Array(gridWidth).fill(0),

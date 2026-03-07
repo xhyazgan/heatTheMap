@@ -110,5 +110,37 @@ export interface DetectionSubmission {
   storeId: number;
   timestamp: string;
   personCount: number;
+  exitCount: number;
   zoneDistribution?: number[][];
+}
+
+// Entry Line types
+export interface EntryLineConfig {
+  id: number;
+  storeId: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  inDirection: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateEntryLine {
+  storeId: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  inDirection: string;
+}
+
+export interface UpdateEntryLine {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  inDirection: string;
+  isActive: boolean;
 }

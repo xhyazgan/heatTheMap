@@ -1,25 +1,35 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { CameraFeed } from './CameraFeed';
-import { mapDetectionsToZones, accumulateZones } from '../../lib/zoneMapper';
+import { mapDetectionsToZones } from '../../lib/zoneMapper';
+import { HeatmapAccumulator } from '../../lib/heatmapAccumulator';
 import type { TrackedObject } from '../../lib/centroidTracker';
+import type { EntryLineConfig } from '../../lib/directionalEntryTracker';
 import { useFilterStore } from '../../stores/useFilterStore';
 
 interface DetectionPanelProps {
+  entryLine?: EntryLineConfig | null;
   onSubmitDetection?: (data: {
     storeId: number;
     timestamp: string;
     personCount: number;
+    exitCount: number;
     zoneDistribution: number[][];
   }) => void;
 }
 
-export const DetectionPanel: React.FC<DetectionPanelProps> = ({ onSubmitDetection }) => {
+export const DetectionPanel: React.FC<DetectionPanelProps> = ({ entryLine, onSubmitDetection }) => {
   const { selectedStore } = useFilterStore();
-  const [accumulatedZones, setAccumulatedZones] = useState<number[][] | null>(null);
   const [lastUniqueCount, setLastUniqueCount] = useState(0);
+  const [lastExitCount, setLastExitCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [lastSubmitTime, setLastSubmitTime] = useState<string | null>(null);
-  const frameCountRef = useRef(0);
+  const accumulatorRef = useRef(new HeatmapAccumulator());
+  const snapshotIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const latestObjectsRef = useRef<{ objects: TrackedObject[]; videoWidth: number; videoHeight: number }>({
+    objects: [],
+    videoWidth: 640,
+    videoHeight: 480,
+  });
 
   const handleDetectionUpdate = useCallback(
     (
@@ -28,21 +38,36 @@ export const DetectionPanel: React.FC<DetectionPanelProps> = ({ onSubmitDetectio
       _currentCount: number,
       videoWidth: number,
       videoHeight: number,
+      exitCount: number,
     ) => {
       setLastUniqueCount(uniqueCount);
-
-      // Accumulate zone data every 10 frames (~1 second)
-      frameCountRef.current++;
-      if (frameCountRef.current % 10 === 0) {
-        const zones = mapDetectionsToZones(objects, videoWidth, videoHeight);
-        setAccumulatedZones((prev) => (prev ? accumulateZones(prev, zones) : zones));
-      }
+      setLastExitCount(exitCount);
+      latestObjectsRef.current = { objects, videoWidth, videoHeight };
     },
     [],
   );
 
+  // Take snapshots every 1 second for time-weighted heatmap
+  useEffect(() => {
+    snapshotIntervalRef.current = setInterval(() => {
+      const { objects, videoWidth, videoHeight } = latestObjectsRef.current;
+      if (objects.length > 0) {
+        const zones = mapDetectionsToZones(objects, videoWidth, videoHeight);
+        accumulatorRef.current.addSnapshot(zones);
+      }
+    }, 1000);
+
+    return () => {
+      if (snapshotIntervalRef.current) {
+        clearInterval(snapshotIntervalRef.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = async () => {
-    if (!selectedStore || !accumulatedZones || !onSubmitDetection) return;
+    if (!selectedStore || !onSubmitDetection) return;
+
+    const heatmap = accumulatorRef.current.getTimeWeightedHeatmap();
 
     setSubmitting(true);
     try {
@@ -50,12 +75,11 @@ export const DetectionPanel: React.FC<DetectionPanelProps> = ({ onSubmitDetectio
         storeId: selectedStore,
         timestamp: new Date().toISOString(),
         personCount: lastUniqueCount,
-        zoneDistribution: accumulatedZones,
+        exitCount: lastExitCount,
+        zoneDistribution: heatmap,
       });
       setLastSubmitTime(new Date().toLocaleTimeString('tr-TR'));
-      // Reset accumulated zones after submit
-      setAccumulatedZones(null);
-      frameCountRef.current = 0;
+      accumulatorRef.current.reset();
     } finally {
       setSubmitting(false);
     }
@@ -70,13 +94,13 @@ export const DetectionPanel: React.FC<DetectionPanelProps> = ({ onSubmitDetectio
         )}
       </div>
 
-      <CameraFeed onDetectionUpdate={handleDetectionUpdate} />
+      <CameraFeed onDetectionUpdate={handleDetectionUpdate} entryLine={entryLine} />
 
       {/* Submit button */}
       <div className="mt-3">
         <button
           onClick={handleSubmit}
-          disabled={!selectedStore || !accumulatedZones || submitting}
+          disabled={!selectedStore || submitting}
           className="w-full px-4 py-2 text-sm font-medium rounded bg-sky-600 hover:bg-sky-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {submitting

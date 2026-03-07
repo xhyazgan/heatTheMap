@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { CentroidTracker, type TrackedObject } from '../../lib/centroidTracker';
+import { DirectionalEntryTracker, type EntryLineConfig } from '../../lib/directionalEntryTracker';
+import type { TrackedObject } from '../../lib/centroidTracker';
 
 interface DetectionResult {
   bbox: [number, number, number, number];
@@ -12,12 +13,14 @@ interface UsePersonDetectionReturn {
   trackedObjects: TrackedObject[];
   uniqueCount: number;
   currentCount: number;
+  exitCount: number;
   isModelLoading: boolean;
   isDetecting: boolean;
   error: string | null;
   startDetection: () => void;
   stopDetection: () => void;
   resetCount: () => void;
+  setEntryLine: (config: EntryLineConfig | null) => void;
 }
 
 export function usePersonDetection(
@@ -27,15 +30,20 @@ export function usePersonDetection(
   const [trackedObjects, setTrackedObjects] = useState<TrackedObject[]>([]);
   const [uniqueCount, setUniqueCount] = useState(0);
   const [currentCount, setCurrentCount] = useState(0);
+  const [exitCount, setExitCount] = useState(0);
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const modelRef = useRef<any>(null);
-  const trackerRef = useRef(new CentroidTracker(30, 80));
+  const trackerRef = useRef(new DirectionalEntryTracker());
   const animFrameRef = useRef<number>(0);
   const lastDetectTime = useRef(0);
   const detectingRef = useRef(false);
+
+  const setEntryLine = useCallback((config: EntryLineConfig | null) => {
+    trackerRef.current.setEntryLine(config);
+  }, []);
 
   const loadModel = useCallback(async () => {
     if (modelRef.current) return modelRef.current;
@@ -78,6 +86,12 @@ export function usePersonDetection(
     lastDetectTime.current = now;
 
     try {
+      // Update video dimensions for the tracker
+      trackerRef.current.setVideoDimensions(
+        video.videoWidth || 640,
+        video.videoHeight || 480,
+      );
+
       const predictions = await model.detect(video);
       const personDetections: DetectionResult[] = predictions
         .filter((p: any) => p.class === 'person' && p.score >= 0.5)
@@ -91,10 +105,11 @@ export function usePersonDetection(
 
       // Update tracker
       const bboxes = personDetections.map((d) => d.bbox);
-      const objects = trackerRef.current.update(bboxes);
-      setTrackedObjects(Array.from(objects.values()));
-      setUniqueCount(trackerRef.current.totalUnique);
-      setCurrentCount(trackerRef.current.currentCount);
+      const result = trackerRef.current.update(bboxes);
+      setTrackedObjects(result.trackedObjects);
+      setUniqueCount(result.uniqueVisitors);
+      setCurrentCount(result.currentCount);
+      setExitCount(result.exitCount);
     } catch {
       // Skip frame on error
     }
@@ -123,6 +138,7 @@ export function usePersonDetection(
     trackerRef.current.reset();
     setUniqueCount(0);
     setCurrentCount(0);
+    setExitCount(0);
     setTrackedObjects([]);
   }, []);
 
@@ -140,11 +156,13 @@ export function usePersonDetection(
     trackedObjects,
     uniqueCount,
     currentCount,
+    exitCount,
     isModelLoading,
     isDetecting,
     error,
     startDetection,
     stopDetection,
     resetCount,
+    setEntryLine,
   };
 }
