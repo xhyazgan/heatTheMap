@@ -19,8 +19,11 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto?> AuthenticateAsync(string username, string password)
     {
-        // Hardcoded credentials for MVP
-        if (username != "admin" || password != "password")
+        // Get credentials from configuration
+        var configUsername = _configuration["Auth:DefaultUsername"] ?? "admin";
+        var configPassword = _configuration["Auth:DefaultPassword"] ?? "password";
+        
+        if (username != configUsername || password != configPassword)
             return null;
 
         var token = GenerateJwtToken(username);
