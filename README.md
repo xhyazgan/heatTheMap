@@ -21,6 +21,7 @@ HeatTheMap is an enterprise-grade analytics platform that revolutionizes retail 
 - [Key Features](#-key-features)
 - [Technology Stack](#-technology-stack)
 - [Architecture](#-architecture)
+- [Security](#-security)
 - [Quick Start](#-quick-start)
 - [Usage Guide](#-usage-guide)
 - [API Documentation](#-api-documentation)
@@ -32,6 +33,53 @@ HeatTheMap is an enterprise-grade analytics platform that revolutionizes retail 
 - [Troubleshooting](#-troubleshooting)
 - [License](#-license)
 - [Acknowledgments](#-acknowledgments)
+
+---
+
+## 🔒 Security
+
+### Initial Setup Required
+
+⚠️ **IMPORTANT**: This project requires configuration files with sensitive information. These files are NOT included in the repository for security reasons.
+
+Before running the project, you must:
+
+1. **API Configuration**: Copy `HeatTheMap.Api/appsettings.Development.json.example` to `HeatTheMap.Api/appsettings.Development.json`
+2. **Web Configuration**: Copy `HeatTheMap.Web/.env.example` to `HeatTheMap.Web/.env`
+3. **Update Secret Values**: Modify the copied files with your own secure values
+
+See **[SETUP.md](SETUP.md)** for detailed step-by-step instructions.
+
+### Protected Files
+
+The following files are automatically excluded from version control via `.gitignore`:
+
+- ✅ `appsettings.Development.json`
+- ✅ `appsettings.Production.json`
+- ✅ `appsettings.*.json` (except base appsettings.json)
+- ✅ `.env` and all `.env.*` files
+
+### Security Best Practices
+
+| Component | Recommendation |
+|-----------|----------------|
+| **JWT Secret Key** | Must be at least 256 bits (32 characters). Use a cryptographically secure random generator |
+| **Default Credentials** | Change immediately! The example credentials are for development only |
+| **Production Deployment** | Use environment variables or a secrets management service (Azure Key Vault, AWS Secrets Manager, etc.) |
+| **Authentication System** | The current system uses hardcoded credentials for MVP. Implement proper user management for production |
+
+### Generating Secure Keys
+
+```powershell
+# PowerShell (Windows)
+-join ((65..90) + (97..122) + (48..57) | Get-Random -Count 64 | ForEach-Object {[char]$_})
+
+# OpenSSL (Linux/Mac)
+openssl rand -base64 64
+
+# Node.js
+node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
+```
 
 ---
 
