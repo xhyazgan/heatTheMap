@@ -1,11 +1,13 @@
 import api from './api';
-import {
+import type {
   DailySummary,
   WeeklyTrends,
   HourlyDistribution,
   ZonePerformance,
   PeakHours,
   Store,
+  HeatmapGridData,
+  DetectionSubmission,
 } from '../types';
 
 export const analyticsService = {
@@ -57,5 +59,16 @@ export const analyticsService = {
   async getStores(): Promise<Store[]> {
     const response = await api.get<Store[]>('/api/stores');
     return response.data;
+  },
+
+  async getLatestHeatmap(storeId: number): Promise<HeatmapGridData> {
+    const response = await api.get<HeatmapGridData>('/api/analytics/heatmap/latest', {
+      params: { storeId },
+    });
+    return response.data;
+  },
+
+  async submitDetection(data: DetectionSubmission): Promise<void> {
+    await api.post('/api/analytics/detection', data);
   },
 };

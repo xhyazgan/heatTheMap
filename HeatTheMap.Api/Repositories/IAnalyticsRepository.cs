@@ -12,4 +12,6 @@ public interface IAnalyticsRepository
     Task<int> GetTotalVisitorsAsync(int storeId, DateOnly date);
     Task<Dictionary<int, int>> GetHourlyDistributionAsync(int storeId, DateOnly date);
     Task<int> GetPeakHourAsync(int storeId, DateOnly date);
+    Task<HeatmapData> AddHeatmapDataAsync(HeatmapData data);
+    Task UpsertFootfallAsync(DailyFootfall footfall);
 }

@@ -73,4 +73,33 @@ public class AnalyticsRepository : IAnalyticsRepository
         var peakFootfall = footfalls.OrderByDescending(f => f.EntryCount).FirstOrDefault();
         return peakFootfall?.Hour ?? 0;
     }
+
+    public async Task<HeatmapData> AddHeatmapDataAsync(HeatmapData data)
+    {
+        _context.HeatmapData.Add(data);
+        await _context.SaveChangesAsync();
+        return data;
+    }
+
+    public async Task UpsertFootfallAsync(DailyFootfall footfall)
+    {
+        var existing = await _context.DailyFootfalls
+            .FirstOrDefaultAsync(f =>
+                f.StoreId == footfall.StoreId &&
+                f.Date == footfall.Date &&
+                f.Hour == footfall.Hour);
+
+        if (existing != null)
+        {
+            existing.EntryCount += footfall.EntryCount;
+            existing.ExitCount += footfall.ExitCount;
+            existing.PeakOccupancy = Math.Max(existing.PeakOccupancy, footfall.PeakOccupancy);
+        }
+        else
+        {
+            _context.DailyFootfalls.Add(footfall);
+        }
+
+        await _context.SaveChangesAsync();
+    }
 }

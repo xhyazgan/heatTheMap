@@ -15,7 +15,7 @@ var api = builder.AddProject<Projects.HeatTheMap_Api>("api")
     .WithExternalHttpEndpoints();
 
 // Web frontend (React + Vite)
-builder.AddNpmApp("web", "./HeatTheMap.Web")
+builder.AddNpmApp("web", "./HeatTheMap.Web", "dev")
     .WithReference(api)
     .WithEnvironment("VITE_API_URL", api.GetEndpoint("http"))
     .WithHttpEndpoint(port: 5173, env: "PORT")

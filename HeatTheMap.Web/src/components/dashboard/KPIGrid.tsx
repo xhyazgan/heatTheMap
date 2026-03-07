@@ -1,6 +1,6 @@
 import React from 'react';
 import { KPICard } from './KPICard';
-import { DailySummary } from '../../types';
+import type { DailySummary } from '../../types/index';
 
 interface KPIGridProps {
   data?: DailySummary;

@@ -11,7 +11,10 @@
       "Bash(npm install)",
       "Bash(npm install:*)",
       "Bash(npx tailwindcss:*)",
-      "Bash(dotnet restore:*)"
+      "Bash(dotnet restore:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(node:*)"
     ]
   }
 }

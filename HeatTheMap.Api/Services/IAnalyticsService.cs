@@ -9,4 +9,6 @@ public interface IAnalyticsService
     Task<HourlyDistributionDto> GetHourlyDistributionAsync(int storeId, DateOnly date);
     Task<ZonePerformanceDto> GetZonePerformanceAsync(int storeId, DateOnly startDate, DateOnly endDate);
     Task<PeakHoursDto> GetPeakHoursAsync(int storeId, int days);
+    Task<HeatmapDataDto?> GetLatestHeatmapDataAsync(int storeId);
+    Task SubmitDetectionAsync(DetectionSubmissionDto dto);
 }

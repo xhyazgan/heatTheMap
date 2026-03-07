@@ -9,6 +9,10 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Npgsql to handle DateTime as UTC
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", false);
+AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+
 // Add service defaults (OpenTelemetry, health checks, service discovery)
 builder.AddServiceDefaults();
 

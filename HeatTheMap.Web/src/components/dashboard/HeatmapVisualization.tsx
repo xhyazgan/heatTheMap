@@ -1,4 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, Suspense, lazy } from 'react';
+
+const HeatmapVisualization3D = lazy(() =>
+  import('./HeatmapVisualization3D').then((m) => ({ default: m.HeatmapVisualization3D }))
+);
 
 interface HeatmapVisualizationProps {
   data?: number[][];
@@ -13,6 +17,7 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
   height = 15,
   loading,
 }) => {
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -101,23 +106,61 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
 
   return (
     <div className="card p-6">
-      <h3 className="text-lg font-semibold text-white mb-4">Store Heatmap</h3>
-      <div className="bg-gray-900 rounded-lg p-4">
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={600}
-          className="w-full h-auto rounded"
-        />
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-white">Magaza Isi Haritasi</h3>
+        <div className="flex items-center gap-1 bg-gray-800 rounded-lg p-0.5">
+          <button
+            onClick={() => setViewMode('2d')}
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+              viewMode === '2d'
+                ? 'bg-sky-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            2D
+          </button>
+          <button
+            onClick={() => setViewMode('3d')}
+            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+              viewMode === '3d'
+                ? 'bg-sky-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            3D
+          </button>
+        </div>
       </div>
+
+      {viewMode === '3d' ? (
+        <Suspense
+          fallback={
+            <div className="bg-gray-900 rounded-lg flex items-center justify-center" style={{ height: 450 }}>
+              <div className="text-gray-400 text-sm">3D yukleniyor...</div>
+            </div>
+          }
+        >
+          <HeatmapVisualization3D data={displayData} width={width} height={height} />
+        </Suspense>
+      ) : (
+        <div className="bg-gray-900 rounded-lg p-4">
+          <canvas
+            ref={canvasRef}
+            width={800}
+            height={600}
+            className="w-full h-auto rounded"
+          />
+        </div>
+      )}
+
       <div className="flex items-center justify-between mt-4 text-xs text-gray-400">
-        <span>Low Traffic</span>
+        <span>Dusuk Trafik</span>
         <div className="flex-1 mx-4 h-2 rounded"
           style={{
             background: 'linear-gradient(to right, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000)'
           }}
         />
-        <span>High Traffic</span>
+        <span>Yuksek Trafik</span>
       </div>
     </div>
   );

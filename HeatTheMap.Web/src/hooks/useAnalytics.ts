@@ -54,3 +54,12 @@ export const useStores = () => {
     staleTime: Infinity, // Stores rarely change
   });
 };
+
+export const useLatestHeatmap = (storeId: number | null) => {
+  return useQuery({
+    queryKey: ['latestHeatmap', storeId],
+    queryFn: () => analyticsService.getLatestHeatmap(storeId!),
+    enabled: !!storeId,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+};

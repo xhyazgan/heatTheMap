@@ -95,3 +95,20 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
 }
+
+// Heatmap grid data from API
+export interface HeatmapGridData {
+  zoneMatrix: number[][];
+  gridWidth: number;
+  gridHeight: number;
+  maxDensity: number;
+  timestamp: string;
+}
+
+// Detection types
+export interface DetectionSubmission {
+  storeId: number;
+  timestamp: string;
+  personCount: number;
+  zoneDistribution?: number[][];
+}

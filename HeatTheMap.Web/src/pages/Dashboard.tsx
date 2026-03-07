@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { KPIGrid } from '../components/dashboard/KPIGrid';
 import { HeatmapVisualization } from '../components/dashboard/HeatmapVisualization';
@@ -7,13 +7,16 @@ import { DailyTrendsChart } from '../components/dashboard/DailyTrendsChart';
 import { ZoneComparisonChart } from '../components/dashboard/ZoneComparisonChart';
 import { ChatButton } from '../components/chatbot/ChatButton';
 import { ChatPanel } from '../components/chatbot/ChatPanel';
+import { DetectionPanel } from '../components/detection/DetectionPanel';
 import { useFilterStore } from '../stores/useFilterStore';
 import {
   useDailySummary,
   useWeeklyTrends,
   useHourlyDistribution,
   useZonePerformance,
+  useLatestHeatmap,
 } from '../hooks/useAnalytics';
+import { useSubmitDetection } from '../hooks/useDetection';
 import { subDays, format } from 'date-fns';
 
 export const Dashboard: React.FC = () => {
@@ -43,6 +46,16 @@ export const Dashboard: React.FC = () => {
     dateRange.end
   );
 
+  const { data: latestHeatmap } = useLatestHeatmap(selectedStore);
+  const submitDetection = useSubmitDetection();
+
+  const handleSubmitDetection = useCallback(
+    (data: { storeId: number; timestamp: string; personCount: number; zoneDistribution: number[][] }) => {
+      submitDetection.mutate(data);
+    },
+    [submitDetection],
+  );
+
   if (!selectedStore) {
     return (
       <Layout>
@@ -62,9 +75,19 @@ export const Dashboard: React.FC = () => {
         {/* KPIs */}
         <KPIGrid data={dailySummary} loading={loadingSummary} />
 
-        {/* Heatmap and Hourly Distribution */}
+        {/* Camera Detection and Heatmap */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <HeatmapVisualization loading={loadingSummary} />
+          <DetectionPanel onSubmitDetection={handleSubmitDetection} />
+          <HeatmapVisualization
+            data={latestHeatmap?.zoneMatrix}
+            width={latestHeatmap?.gridWidth}
+            height={latestHeatmap?.gridHeight}
+            loading={loadingSummary}
+          />
+        </div>
+
+        {/* Hourly Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <HourlyDistributionChart data={hourlyDist} loading={loadingHourly} />
         </div>
 

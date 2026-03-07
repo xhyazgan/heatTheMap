@@ -55,3 +55,18 @@ public record PeakHoursDto(
     List<PeakHourData> PeakHours,
     string AveragePeakDuration
 );
+
+public record DetectionSubmissionDto(
+    int StoreId,
+    DateTime Timestamp,
+    int PersonCount,
+    int[][]? ZoneDistribution
+);
+
+public record HeatmapDataDto(
+    int[][] ZoneMatrix,
+    int GridWidth,
+    int GridHeight,
+    int MaxDensity,
+    DateTime Timestamp
+);

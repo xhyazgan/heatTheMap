@@ -124,4 +124,41 @@ public class AnalyticsController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving peak hours");
         }
     }
+
+    /// <summary>
+    /// Get latest heatmap grid data for a store
+    /// </summary>
+    [HttpGet("heatmap/latest")]
+    public async Task<ActionResult<HeatmapDataDto>> GetLatestHeatmap([FromQuery] int storeId)
+    {
+        try
+        {
+            var heatmap = await _analyticsService.GetLatestHeatmapDataAsync(storeId);
+            if (heatmap == null) return NotFound("No heatmap data found");
+            return Ok(heatmap);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting latest heatmap for store {StoreId}", storeId);
+            return StatusCode(500, "An error occurred while retrieving heatmap data");
+        }
+    }
+
+    /// <summary>
+    /// Submit detection data from camera
+    /// </summary>
+    [HttpPost("detection")]
+    public async Task<ActionResult> PostDetection([FromBody] DetectionSubmissionDto dto)
+    {
+        try
+        {
+            await _analyticsService.SubmitDetectionAsync(dto);
+            return Created();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error submitting detection for store {StoreId}", dto.StoreId);
+            return StatusCode(500, "An error occurred while submitting detection data");
+        }
+    }
 }
