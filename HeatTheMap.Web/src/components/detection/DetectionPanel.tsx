@@ -1,9 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { CameraFeed } from './CameraFeed';
+import { VideoSourceSelector } from './VideoSourceSelector';
 import { mapDetectionsToZones } from '../../lib/zoneMapper';
 import { HeatmapAccumulator } from '../../lib/heatmapAccumulator';
 import type { TrackedObject } from '../../lib/centroidTracker';
 import type { EntryLineConfig } from '../../lib/directionalEntryTracker';
+import type { VideoSource } from '../../types/videoSource';
 import { useFilterStore } from '../../stores/useFilterStore';
 
 interface DetectionPanelProps {
@@ -19,6 +21,7 @@ interface DetectionPanelProps {
 
 export const DetectionPanel: React.FC<DetectionPanelProps> = ({ entryLine, onSubmitDetection }) => {
   const { selectedStore } = useFilterStore();
+  const [videoSource, setVideoSource] = useState<VideoSource | null>(null);
   const [lastUniqueCount, setLastUniqueCount] = useState(0);
   const [lastExitCount, setLastExitCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -85,6 +88,10 @@ export const DetectionPanel: React.FC<DetectionPanelProps> = ({ entryLine, onSub
     }
   };
 
+  const handleSourceSelect = useCallback((source: VideoSource) => {
+    setVideoSource(source);
+  }, []);
+
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
@@ -94,7 +101,16 @@ export const DetectionPanel: React.FC<DetectionPanelProps> = ({ entryLine, onSub
         )}
       </div>
 
-      <CameraFeed onDetectionUpdate={handleDetectionUpdate} entryLine={entryLine} />
+      <VideoSourceSelector
+        onSourceSelect={handleSourceSelect}
+        disabled={false}
+      />
+
+      <CameraFeed
+        onDetectionUpdate={handleDetectionUpdate}
+        entryLine={entryLine}
+        videoSource={videoSource}
+      />
 
       {/* Submit button */}
       <div className="mt-3">

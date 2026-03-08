@@ -53,10 +53,10 @@ export const ZoneComparisonChart: React.FC<ZoneComparisonChartProps> = ({
               borderRadius: '0.5rem',
               color: '#fff',
             }}
-            formatter={(value: number, name: string) => [
-              name === 'visits' ? `${value} visits` : `${value}%`,
+            formatter={((value: number | undefined, name: string | undefined) => [
+              name === 'visits' ? `${value ?? 0} visits` : `${value ?? 0}%`,
               name === 'visits' ? 'Visits' : 'Percentage',
-            ]}
+            ]) as any}
           />
           <Bar dataKey="visits" fill="#EF4444" name="Visits" />
         </BarChart>

@@ -22,8 +22,8 @@ function getHeatColor(intensity: number): THREE.Color {
 
 export const HeatmapBars: React.FC<HeatmapBarsProps> = ({
   data,
-  gridWidth,
-  gridHeight,
+  gridWidth: _gridWidth,
+  gridHeight: _gridHeight,
   maxBarHeight = 5,
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);

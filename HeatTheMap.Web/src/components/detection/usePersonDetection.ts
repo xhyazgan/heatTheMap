@@ -94,7 +94,7 @@ export function usePersonDetection(
 
       const predictions = await model.detect(video);
       const personDetections: DetectionResult[] = predictions
-        .filter((p: any) => p.class === 'person' && p.score >= 0.5)
+        .filter((p: any) => p.class === 'person' && p.score >= 0.55)
         .map((p: any) => ({
           bbox: p.bbox as [number, number, number, number],
           score: p.score,

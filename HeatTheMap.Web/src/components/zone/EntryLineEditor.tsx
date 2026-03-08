@@ -8,12 +8,14 @@ interface EntryLineEditorProps {
   storeId: number;
   existingLine?: EntryLineConfig | null;
   onClose: () => void;
+  mode?: 'modal' | 'inline';
 }
 
 export const EntryLineEditor: React.FC<EntryLineEditorProps> = ({
   storeId,
   existingLine,
   onClose,
+  mode = 'modal',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
@@ -145,6 +147,64 @@ export const EntryLineEditor: React.FC<EntryLineEditorProps> = ({
     onClose();
   };
 
+  const content = (
+    <>
+      <p className="text-sm text-gray-400 mb-3">
+        Canvas uzerinde 2 nokta secin (A ve B) ve giris yonunu belirleyin.
+      </p>
+
+      <canvas
+        ref={canvasRef}
+        width={canvasWidth}
+        height={canvasHeight}
+        onClick={handleCanvasClick}
+        className="w-full bg-gray-900 rounded cursor-crosshair border border-gray-700"
+      />
+
+      <div className="mt-4 flex items-center gap-3">
+        <label className="text-sm text-gray-300">Giris Yonu:</label>
+        <select
+          value={direction}
+          onChange={(e) => setDirection(e.target.value as Direction)}
+          className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 border border-gray-600"
+        >
+          <option value="left-to-right">Soldan Saga</option>
+          <option value="right-to-left">Sagdan Sola</option>
+          <option value="top-to-bottom">Yukaridan Asagi</option>
+          <option value="bottom-to-top">Asagidan Yukari</option>
+        </select>
+      </div>
+
+      <div className="mt-4 flex justify-end gap-3">
+        <button
+          onClick={() => setPoints([])}
+          className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded"
+        >
+          Temizle
+        </button>
+        {mode === 'modal' && (
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded"
+          >
+            Iptal
+          </button>
+        )}
+        <button
+          onClick={handleSave}
+          disabled={points.length !== 2 || saveEntryLine.isPending}
+          className="px-4 py-2 text-sm bg-sky-600 hover:bg-sky-500 text-white rounded disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {saveEntryLine.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+        </button>
+      </div>
+    </>
+  );
+
+  if (mode === 'inline') {
+    return content;
+  }
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-lg p-6 max-w-[700px] w-full mx-4">
@@ -152,54 +212,7 @@ export const EntryLineEditor: React.FC<EntryLineEditorProps> = ({
           <h3 className="text-lg font-semibold text-white">Entry Line Ayarla</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">&times;</button>
         </div>
-
-        <p className="text-sm text-gray-400 mb-3">
-          Canvas uzerinde 2 nokta secin (A ve B) ve giris yonunu belirleyin.
-        </p>
-
-        <canvas
-          ref={canvasRef}
-          width={canvasWidth}
-          height={canvasHeight}
-          onClick={handleCanvasClick}
-          className="w-full bg-gray-900 rounded cursor-crosshair border border-gray-700"
-        />
-
-        <div className="mt-4 flex items-center gap-3">
-          <label className="text-sm text-gray-300">Giris Yonu:</label>
-          <select
-            value={direction}
-            onChange={(e) => setDirection(e.target.value as Direction)}
-            className="bg-gray-700 text-white text-sm rounded px-3 py-1.5 border border-gray-600"
-          >
-            <option value="left-to-right">Soldan Saga</option>
-            <option value="right-to-left">Sagdan Sola</option>
-            <option value="top-to-bottom">Yukaridan Asagi</option>
-            <option value="bottom-to-top">Asagidan Yukari</option>
-          </select>
-        </div>
-
-        <div className="mt-4 flex justify-end gap-3">
-          <button
-            onClick={() => setPoints([])}
-            className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded"
-          >
-            Temizle
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded"
-          >
-            Iptal
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={points.length !== 2 || saveEntryLine.isPending}
-            className="px-4 py-2 text-sm bg-sky-600 hover:bg-sky-500 text-white rounded disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {saveEntryLine.isPending ? 'Kaydediliyor...' : 'Kaydet'}
-          </button>
-        </div>
+        {content}
       </div>
     </div>
   );

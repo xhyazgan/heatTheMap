@@ -36,6 +36,12 @@ builder.Services.AddHttpClient<IOllamaService, OllamaService>(client =>
     client.Timeout = TimeSpan.FromSeconds(60); // Ollama can take time for generation
 });
 
+// Register HttpClient for camera proxy
+builder.Services.AddHttpClient("CameraProxy", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 // Add JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "your-super-secret-key-that-is-at-least-256-bits-long-for-development";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "HeatTheMap.Api";

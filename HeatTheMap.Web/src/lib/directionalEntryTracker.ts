@@ -19,7 +19,7 @@ interface Point {
 }
 
 export class DirectionalEntryTracker {
-  private tracker = new CentroidTracker(30, 80);
+  private tracker = new CentroidTracker(30, 100);
   private entryLine: EntryLineConfig | null = null;
   private videoWidth = 640;
   private videoHeight = 480;
@@ -46,7 +46,7 @@ export class DirectionalEntryTracker {
 
     return {
       currentCount: this.tracker.currentCount,
-      uniqueVisitors: this.entryLine ? this._uniqueVisitors : this.tracker.totalUnique,
+      uniqueVisitors: this.tracker.totalUnique,
       exitCount: this._exitCount,
       trackedObjects,
     };
@@ -65,21 +65,58 @@ export class DirectionalEntryTracker {
     };
 
     for (const obj of objects.values()) {
-      if (!obj.previousCentroid || obj.hasCrossedLine) continue;
+      // Guard: skip if no previous centroid
+      if (!obj.previousCentroid) continue;
+
+      // Guard: skip if track is too young (reduce phantom tracks)
+      if (obj.trackAge < 3) continue;
+
+      // Guard: cooldown - skip if crossed too recently (1s)
+      if (obj.lastCrossingTime && Date.now() - obj.lastCrossingTime < 1000) continue;
 
       const prev: Point = { x: obj.previousCentroid[0], y: obj.previousCentroid[1] };
       const curr: Point = { x: obj.centroid[0], y: obj.centroid[1] };
 
-      if (this.lineSegmentsIntersect(prev, curr, lineStart, lineEnd)) {
-        const direction = this.getCrossingDirection(prev, curr, lineStart, lineEnd);
-        obj.hasCrossedLine = true;
+      if (!this.lineSegmentsIntersect(prev, curr, lineStart, lineEnd)) continue;
 
-        if (direction === this.entryLine.inDirection) {
-          this._uniqueVisitors++;
-          obj.entryTime = Date.now();
-        } else {
-          this._exitCount++;
-        }
+      const direction = this.getCrossingDirection(prev, curr, lineStart, lineEnd);
+      const isInDirection = direction === this.entryLine.inDirection;
+
+      // State machine transitions
+      switch (obj.crossingState) {
+        case 'none':
+          if (isInDirection) {
+            obj.crossingState = 'entered';
+            obj.entryTime = Date.now();
+            obj.lastCrossingTime = Date.now();
+            this._uniqueVisitors++;
+          } else {
+            obj.crossingState = 'exited';
+            obj.lastCrossingTime = Date.now();
+            this._exitCount++;
+          }
+          break;
+
+        case 'entered':
+          if (!isInDirection) {
+            // Person going back out
+            obj.crossingState = 'exited';
+            obj.lastCrossingTime = Date.now();
+            this._exitCount++;
+          }
+          // same direction again = glitch, ignore
+          break;
+
+        case 'exited':
+          if (isInDirection) {
+            // Person re-entering
+            obj.crossingState = 'entered';
+            obj.entryTime = Date.now();
+            obj.lastCrossingTime = Date.now();
+            this._uniqueVisitors++;
+          }
+          // same direction again = glitch, ignore
+          break;
       }
     }
   }
@@ -128,10 +165,8 @@ export class DirectionalEntryTracker {
     const isHorizontal = Math.abs(lineVector.x) >= Math.abs(lineVector.y);
 
     if (isHorizontal) {
-      // Horizontal line: crossing determines top-to-bottom vs bottom-to-top
       return cross > 0 ? 'top-to-bottom' : 'bottom-to-top';
     } else {
-      // Vertical line: Bug 1 fix - mapping is reversed for vertical lines
       return cross > 0 ? 'right-to-left' : 'left-to-right';
     }
   }
@@ -141,7 +176,7 @@ export class DirectionalEntryTracker {
   }
 
   get uniqueVisitors(): number {
-    return this.entryLine ? this._uniqueVisitors : this.tracker.totalUnique;
+    return this.tracker.totalUnique;
   }
 
   get exitCount(): number {

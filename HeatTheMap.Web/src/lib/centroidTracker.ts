@@ -1,10 +1,14 @@
+import { solve as hungarianSolve } from './hungarian';
+
 export interface TrackedObject {
   id: number;
   centroid: [number, number];
   previousCentroid: [number, number] | null;
   bbox: [number, number, number, number];
   disappeared: number;
-  hasCrossedLine: boolean;
+  crossingState: 'none' | 'entered' | 'exited';
+  lastCrossingTime: number | null;
+  trackAge: number;
   entryTime: number | null;
 }
 
@@ -13,16 +17,17 @@ export class CentroidTracker {
   private objects: Map<number, TrackedObject> = new Map();
   private maxDisappeared: number;
   private maxDistance: number;
+  private confirmedIds = new Set<number>();
+  private minTrackAge = 3;
   public totalUnique = 0;
 
-  constructor(maxDisappeared = 30, maxDistance = 80) {
+  constructor(maxDisappeared = 30, maxDistance = 100) {
     this.maxDisappeared = maxDisappeared;
     this.maxDistance = maxDistance;
   }
 
   update(bboxes: [number, number, number, number][]): Map<number, TrackedObject> {
     if (bboxes.length === 0) {
-      // Mark all existing objects as disappeared
       for (const [id, obj] of this.objects) {
         obj.disappeared++;
         if (obj.disappeared > this.maxDisappeared) {
@@ -35,7 +40,6 @@ export class CentroidTracker {
     const inputCentroids = bboxes.map((bbox) => this.computeCentroid(bbox));
 
     if (this.objects.size === 0) {
-      // Register all new detections
       for (let i = 0; i < inputCentroids.length; i++) {
         this.register(inputCentroids[i], bboxes[i]);
       }
@@ -43,26 +47,37 @@ export class CentroidTracker {
     }
 
     const objectIds = Array.from(this.objects.keys());
-    const objectCentroids = objectIds.map((id) => this.objects.get(id)!.centroid);
+    const objectEntries = objectIds.map((id) => this.objects.get(id)!);
 
-    // Compute distance matrix
-    const distances: { objectIdx: number; inputIdx: number; dist: number }[] = [];
-    for (let o = 0; o < objectCentroids.length; o++) {
+    // Build cost matrix using centroid distance + IoU
+    const costMatrix: number[][] = [];
+    for (let o = 0; o < objectEntries.length; o++) {
+      const row: number[] = [];
       for (let i = 0; i < inputCentroids.length; i++) {
-        const dist = this.euclidean(objectCentroids[o], inputCentroids[i]);
-        distances.push({ objectIdx: o, inputIdx: i, dist });
+        const centroidDist = this.euclidean(objectEntries[o].centroid, inputCentroids[i]);
+        const iou = this.computeIoU(objectEntries[o].bbox, bboxes[i]);
+        // IoU reduces effective distance
+        const score = centroidDist * (1 - iou * 0.5);
+
+        // Adaptive max distance based on bbox diagonal
+        const [, , w, h] = objectEntries[o].bbox;
+        const diagonal = Math.sqrt(w * w + h * h);
+        const adaptiveMax = Math.max(this.maxDistance, diagonal * 0.75);
+
+        // If too far, set very high cost
+        row.push(score > adaptiveMax ? 1e6 : score);
       }
+      costMatrix.push(row);
     }
 
-    // Sort by distance (greedy matching)
-    distances.sort((a, b) => a.dist - b.dist);
+    // Use Hungarian algorithm for optimal assignment
+    const assignments = hungarianSolve(costMatrix);
 
     const usedObjects = new Set<number>();
     const usedInputs = new Set<number>();
 
-    for (const { objectIdx, inputIdx, dist } of distances) {
-      if (usedObjects.has(objectIdx) || usedInputs.has(inputIdx)) continue;
-      if (dist > this.maxDistance) continue;
+    for (const [objectIdx, inputIdx] of assignments) {
+      if (costMatrix[objectIdx][inputIdx] >= 1e6) continue;
 
       const id = objectIds[objectIdx];
       const obj = this.objects.get(id)!;
@@ -70,6 +85,13 @@ export class CentroidTracker {
       obj.centroid = inputCentroids[inputIdx];
       obj.bbox = bboxes[inputIdx];
       obj.disappeared = 0;
+      obj.trackAge++;
+
+      // Confirm track after minTrackAge frames (fallback unique counting)
+      if (obj.trackAge === this.minTrackAge && !this.confirmedIds.has(id)) {
+        this.confirmedIds.add(id);
+        this.totalUnique++;
+      }
 
       usedObjects.add(objectIdx);
       usedInputs.add(inputIdx);
@@ -104,7 +126,9 @@ export class CentroidTracker {
       previousCentroid: null,
       bbox,
       disappeared: 0,
-      hasCrossedLine: false,
+      crossingState: 'none',
+      lastCrossingTime: null,
+      trackAge: 0,
       entryTime: null,
     });
     this.nextId++;
@@ -119,6 +143,26 @@ export class CentroidTracker {
     return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);
   }
 
+  private computeIoU(
+    bboxA: [number, number, number, number],
+    bboxB: [number, number, number, number],
+  ): number {
+    const [ax, ay, aw, ah] = bboxA;
+    const [bx, by, bw, bh] = bboxB;
+
+    const x1 = Math.max(ax, bx);
+    const y1 = Math.max(ay, by);
+    const x2 = Math.min(ax + aw, bx + bw);
+    const y2 = Math.min(ay + ah, by + bh);
+
+    const intersection = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+    if (intersection === 0) return 0;
+
+    const areaA = aw * ah;
+    const areaB = bw * bh;
+    return intersection / (areaA + areaB - intersection);
+  }
+
   get currentCount(): number {
     return this.objects.size;
   }
@@ -127,6 +171,7 @@ export class CentroidTracker {
     this.objects.clear();
     this.nextId = 0;
     this.totalUnique = 0;
+    this.confirmedIds.clear();
   }
 
   getObjects(): TrackedObject[] {
