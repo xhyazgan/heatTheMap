@@ -2,7 +2,7 @@
 
 **AI-Powered Retail Store Analytics Platform**
 
-Real-time customer tracking and visualization platform for physical retail stores. Analyze customer behavior using camera-based AI and generate insightful heatmaps.
+Real-time customer tracking and heatmap visualization for physical retail stores. Transform customer behavior into actionable insights using AI and interactive analytics.
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
@@ -18,13 +18,47 @@ Real-time customer tracking and visualization platform for physical retail store
 
 ## ✨ Features
 
-Transform your retail space into a data-driven environment:
+### 📹 Real-Time Person Detection
+- Browser-based AI tracking using TensorFlow.js and COCO-SSD
+- Automatic visitor counting and movement tracking
+- No server-side ML processing required
 
-- 📹 **Real-Time Person Detection** - Browser-based ML powered by TensorFlow.js and COCO-SSD model
-- 🗺️ **Interactive Heatmaps** - 2D and 3D visualizations showing customer density zones
-- 📊 **Comprehensive Analytics** - Track visitor count, peak hours, dwell time, and zone performance
-- 🤖 **AI Chatbot** - Natural language queries powered by Ollama LLM (LLaMA 3.1)
-- ⚡ **Live Updates** - Real-time occupancy tracking and automatic data refresh
+### 🗺️ Interactive Heatmaps
+- **2D Visualization** - Color-coded density maps (Blue → Yellow → Red)
+- **3D Visualization** - Interactive 3D bar charts with camera controls
+- **Zone-Based Analysis** - Configurable grid system for detailed insights
+- **Auto-Refresh** - Real-time updates every 30 seconds
+
+### 📊 Comprehensive Analytics Dashboard
+- **Live KPI Cards** - Total visitors, current occupancy, average dwell time, peak hours
+- **Weekly Trends** - 7-day comparative analysis with entry/exit patterns
+- **Hourly Distribution** - Identify traffic patterns throughout the day
+- **Zone Comparison** - Discover hot and cold spots in your store layout
+- **Historical Data** - Daily footfall trends and performance metrics
+
+### 🤖 AI-Powered Chatbot
+- Natural language queries about your store analytics
+- Ask questions like "How many visitors today?" or "What are the peak hours?"
+- Powered by Ollama and LLaMA 3.1 local LLM
+- Context-aware responses with real-time data analysis
+
+### 🏪 Multi-Store Management
+- Support for multiple retail locations
+- Easy switching between stores via dropdown selector
+- Store-specific analytics and heatmaps
+- Centralized data management
+
+### 🔐 Secure Authentication
+- JWT-based authentication system
+- Protected API endpoints
+- Session management
+- Configurable admin credentials
+
+### ⚡ Real-Time Updates
+- Live occupancy tracking
+- Automatic data refresh
+- WebSocket-ready architecture
+- Responsive UI updates
 
 ## 🚀 Quick Start
 
@@ -33,7 +67,7 @@ Transform your retail space into a data-driven environment:
 - .NET 10 SDK
 - Node.js 20+
 - Docker (for PostgreSQL)
-- Ollama (optional, for AI chatbot features)
+- Ollama (optional, for AI chatbot)
 
 ### Installation
 
@@ -52,9 +86,9 @@ cp HeatTheMap.Api/appsettings.Development.json.example HeatTheMap.Api/appsetting
 cp HeatTheMap.Web/.env.example HeatTheMap.Web/.env
 ```
 
-**3. Update secret values**
+**3. Configure JWT and credentials**
 
-Edit `HeatTheMap.Api/appsettings.Development.json` and replace the JWT key:
+Edit `HeatTheMap.Api/appsettings.Development.json`:
 ```json
 {
   "Jwt": {
@@ -67,7 +101,7 @@ Edit `HeatTheMap.Api/appsettings.Development.json` and replace the JWT key:
 }
 ```
 
-**Generate a secure key:**
+**Generate a secure JWT key:**
 ```powershell
 # PowerShell (Windows)
 -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 64 | ForEach-Object {[char]$_})
@@ -77,74 +111,100 @@ Edit `HeatTheMap.Api/appsettings.Development.json` and replace the JWT key:
 openssl rand -base64 64
 ```
 
-**4. Run the application**
+**4. Install Ollama and download models (Optional)**
+```bash
+# Install from https://ollama.ai/
+ollama pull llama3.1
+```
+
+**5. Run the application**
 ```bash
 dotnet run
 ```
 
-The application will automatically open in your browser. Default credentials: `admin` / `password`
+The application will automatically open in your browser at `http://localhost:5173`
 
-📚 **Detailed setup instructions:** [SETUP.md](SETUP.md)
+**Default credentials:** `admin` / `password` (or your configured password)
 
-## 🔒 Security Notice
+## 💡 Usage Guide
 
-> [!IMPORTANT]
-> Configuration files containing sensitive information are **NOT** included in this repository. You must create your own configuration files before running the project.
+### Getting Started
+1. Login with your admin credentials
+2. Demo store data is pre-seeded for testing
+3. Navigate through the dashboard to explore analytics
 
-**Protected files:**
-- ✅ `appsettings.Development.json` - JWT keys and credentials
-- ✅ `.env` - Environment variables
+### Capturing Heatmap Data
+1. Click "Start Detection" to begin person tracking
+2. Allow camera access when prompted
+3. System automatically detects and tracks visitors
+4. View real-time heatmap updates
 
-These files are automatically excluded via `.gitignore`
+### Using Analytics
+- **KPI Cards** - View quick metrics at the top
+- **Charts** - Analyze trends, hourly patterns, and zone performance
+- **Heatmaps** - Toggle between 2D and 3D views
+- **Date Filters** - Select custom date ranges for analysis
 
-**Making the repo public?** See [CLEANUP_GIT_HISTORY.md](CLEANUP_GIT_HISTORY.md) for instructions on cleaning sensitive data from Git history.
-
-## 💡 What You Get
-
-### 📈 Analytics Dashboard
-- **KPI Cards** - Total visitors, average dwell time, current occupancy, peak hours
-- **Weekly Trends** - 7-day comparative analysis with entry/exit patterns
-- **Hourly Distribution** - Identify traffic patterns throughout the day
-- **Zone Analysis** - Discover hot and cold spots in your store
-
-### 🎨 Heatmap Visualizations
-- **2D Heatmap** - Color-coded density map (Blue → Yellow → Red)
-- **3D Heatmap** - Interactive 3D bar chart with full camera controls
-- **Auto-Refresh** - Updates every 30 seconds for real-time insights
-
-### 🤖 AI-Powered Features
-- **Person Detection** - Automatic visitor counting via COCO-SSD ML model
-- **Centroid Tracking** - Tracks customer movement paths through zones
-- **Smart Chatbot** - Ask questions like "How many visitors today?" in natural language
+### AI Chatbot Queries
+- "How many visitors did we have today?"
+- "What are the busiest hours?"
+- "Which zone has the most traffic?"
+- "Show me yesterday's statistics"
 
 ## 🛠️ Tech Stack
 
 **Backend:** .NET 10, PostgreSQL, Entity Framework Core, JWT Authentication  
-**Frontend:** React 19, TypeScript, TailwindCSS, Three.js, Recharts  
+**Frontend:** React 19, TypeScript, TailwindCSS, Zustand  
+**Visualization:** Three.js, Recharts  
 **AI/ML:** TensorFlow.js, COCO-SSD, Ollama (LLaMA 3.1)  
-**Infrastructure:** .NET Aspire, Docker, OpenTelemetry
+**Infrastructure:** .NET Aspire, Docker
 
 ## 📁 Project Structure
 
 ```
 heatTheMap/
 ├── HeatTheMap.Api/              # .NET 10 Web API
-│   ├── Controllers/             # REST API endpoints
-│   ├── Services/                # Business logic layer
-│   ├── Repositories/            # Data access layer
-│   ├── Data/                    # EF Core context & entities
+│   ├── Controllers/             # REST endpoints
+│   ├── Services/                # Business logic
+│   ├── Repositories/            # Data access
+│   ├── Data/                    # Database entities
 │   └── DTOs/                    # Data transfer objects
 ├── HeatTheMap.Web/              # React 19 SPA
-│   ├── src/
-│   │   ├── components/          # Reusable UI components
-│   │   ├── pages/               # Page components (Login, Dashboard)
-│   │   ├── services/            # API client services
-│   │   ├── hooks/               # Custom React hooks
-│   │   └── stores/              # Zustand state management
-│   └── public/
-├── HeatTheMap.ServiceDefaults/  # .NET Aspire service defaults
-└── docs/                        # Additional documentation
+│   ├── src/components/          # UI components
+│   ├── src/pages/               # Page views
+│   ├── src/services/            # API clients
+│   ├── src/hooks/               # Custom hooks
+│   └── src/stores/              # State management
+└── HeatTheMap.ServiceDefaults/  # .NET Aspire defaults
 ```
+
+## 🔒 Security Notice
+
+> [!IMPORTANT]
+> Configuration files with sensitive data are **NOT** included in this repository.
+
+**Protected files:**
+- `appsettings.Development.json` - JWT keys and credentials
+- `.env` - Environment variables
+
+**Example templates provided:**
+- `appsettings.Development.json.example`
+- `.env.example`
+
+These files are excluded via `.gitignore` to prevent accidental commits.
+
+## 🎯 Key Capabilities
+
+✅ **Person Detection** - AI-powered visitor tracking  
+✅ **Heatmap Generation** - 2D and 3D visualizations  
+✅ **Analytics Dashboard** - Comprehensive KPIs and charts  
+✅ **AI Chatbot** - Natural language queries  
+✅ **Multi-Store Support** - Manage multiple locations  
+✅ **Real-Time Updates** - Live data refresh  
+✅ **Secure API** - JWT authentication  
+✅ **Zone Analysis** - Grid-based tracking  
+✅ **Historical Data** - Trend analysis  
+✅ **Custom Date Ranges** - Flexible filtering
 
 ## 🤝 Contributing
 
@@ -156,23 +216,17 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## � License
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- [TensorFlow.js](https://www.tensorflow.org/js) - Browser-based machine learning
+- [TensorFlow.js](https://www.tensorflow.org/js) - Browser ML
+- [COCO-SSD](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd) - Object detection
 - [Ollama](https://ollama.ai/) - Local LLM runtime
-- [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) - Cloud-ready app orchestration
-- [COCO-SSD](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd) - Object detection model
+- [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) - Cloud-ready orchestration
+- [Recharts](https://recharts.org/) - Chart library
+- [Three.js](https://threejs.org/) - 3D graphics
 
 ---
-
-<p align="center">
-  <sub>Built with ❤️ for retail analytics</sub>
-</p>
-
-<p align="center">
-  <sub>⚠️ Note: For production use, implement proper user management and secret management solutions (e.g., Azure Key Vault, AWS Secrets Manager)</sub>
-</p>
