@@ -220,7 +220,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgement
 
 - [TensorFlow.js](https://www.tensorflow.org/js) - Browser ML
 - [COCO-SSD](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd) - Object detection
