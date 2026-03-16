@@ -78,8 +78,8 @@ export function usePersonDetection(
     }
 
     const now = performance.now();
-    // Throttle to ~10 FPS
-    if (now - lastDetectTime.current < 100) {
+    // Throttle to ~15 FPS for better tracking of fast movement
+    if (now - lastDetectTime.current < 66) {
       animFrameRef.current = requestAnimationFrame(detectFrame);
       return;
     }
@@ -94,7 +94,7 @@ export function usePersonDetection(
 
       const predictions = await model.detect(video);
       const personDetections: DetectionResult[] = predictions
-        .filter((p: any) => p.class === 'person' && p.score >= 0.55)
+        .filter((p: any) => p.class === 'person' && p.score >= 0.40)
         .map((p: any) => ({
           bbox: p.bbox as [number, number, number, number],
           score: p.score,

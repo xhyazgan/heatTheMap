@@ -161,4 +161,31 @@ public class AnalyticsController : ControllerBase
             return StatusCode(500, "An error occurred while submitting detection data");
         }
     }
+
+    /// <summary>
+    /// Reset all analytics data for a specific store
+    /// </summary>
+    [HttpDelete("store/{storeId}/reset")]
+    public async Task<ActionResult> ResetStoreData(int storeId)
+    {
+        try
+        {
+            var (footfallCount, heatmapCount, routeCount) = await _analyticsService.ResetStoreDataAsync(storeId);
+            return Ok(new
+            {
+                message = $"All analytics data for store {storeId} has been reset",
+                deletedCounts = new
+                {
+                    dailyFootfalls = footfallCount,
+                    heatmapData = heatmapCount,
+                    customerRoutes = routeCount
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting data for store {StoreId}", storeId);
+            return StatusCode(500, "An error occurred while resetting store data");
+        }
+    }
 }

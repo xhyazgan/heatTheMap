@@ -144,3 +144,12 @@ export interface UpdateEntryLine {
   inDirection: string;
   isActive: boolean;
 }
+
+export interface ResetStoreDataResponse {
+  message: string;
+  deletedCounts: {
+    dailyFootfalls: number;
+    heatmapData: number;
+    customerRoutes: number;
+  };
+}

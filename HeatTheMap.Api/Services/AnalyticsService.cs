@@ -233,4 +233,9 @@ public class AnalyticsService : IAnalyticsService
             await _analyticsRepository.AddHeatmapDataAsync(heatmapData);
         }
     }
+
+    public async Task<(int footfallCount, int heatmapCount, int routeCount)> ResetStoreDataAsync(int storeId)
+    {
+        return await _analyticsRepository.ResetStoreDataAsync(storeId);
+    }
 }

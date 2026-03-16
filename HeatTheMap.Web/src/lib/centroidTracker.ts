@@ -10,6 +10,7 @@ export interface TrackedObject {
   lastCrossingTime: number | null;
   trackAge: number;
   entryTime: number | null;
+  velocity: [number, number] | null;
 }
 
 export class CentroidTracker {
@@ -21,7 +22,7 @@ export class CentroidTracker {
   private minTrackAge = 3;
   public totalUnique = 0;
 
-  constructor(maxDisappeared = 30, maxDistance = 100) {
+  constructor(maxDisappeared = 30, maxDistance = 200) {
     this.maxDisappeared = maxDisappeared;
     this.maxDistance = maxDistance;
   }
@@ -49,20 +50,32 @@ export class CentroidTracker {
     const objectIds = Array.from(this.objects.keys());
     const objectEntries = objectIds.map((id) => this.objects.get(id)!);
 
-    // Build cost matrix using centroid distance + IoU
+    // Build cost matrix using centroid distance + IoU (with velocity prediction)
     const costMatrix: number[][] = [];
     for (let o = 0; o < objectEntries.length; o++) {
       const row: number[] = [];
+      const obj = objectEntries[o];
+      // Predict position based on velocity (scale by disappeared frames for catch-up)
+      const steps = 1 + obj.disappeared; // predict further ahead if object was missing
+      const predicted: [number, number] = obj.velocity
+        ? [obj.centroid[0] + obj.velocity[0] * steps,
+           obj.centroid[1] + obj.velocity[1] * steps]
+        : obj.centroid;
+      // Velocity magnitude for adaptive search radius
+      const speed = obj.velocity
+        ? Math.sqrt(obj.velocity[0] ** 2 + obj.velocity[1] ** 2)
+        : 0;
       for (let i = 0; i < inputCentroids.length; i++) {
-        const centroidDist = this.euclidean(objectEntries[o].centroid, inputCentroids[i]);
-        const iou = this.computeIoU(objectEntries[o].bbox, bboxes[i]);
+        const centroidDist = this.euclidean(predicted, inputCentroids[i]);
+        const iou = this.computeIoU(obj.bbox, bboxes[i]);
         // IoU reduces effective distance
         const score = centroidDist * (1 - iou * 0.5);
 
-        // Adaptive max distance based on bbox diagonal
-        const [, , w, h] = objectEntries[o].bbox;
+        // Adaptive max distance: bbox diagonal + velocity-based expansion
+        const [, , w, h] = obj.bbox;
         const diagonal = Math.sqrt(w * w + h * h);
-        const adaptiveMax = Math.max(this.maxDistance, diagonal * 0.75);
+        const velocityBonus = speed * 3 * steps; // fast movers get much larger search radius
+        const adaptiveMax = Math.max(this.maxDistance, diagonal * 1.5 + velocityBonus);
 
         // If too far, set very high cost
         row.push(score > adaptiveMax ? 1e6 : score);
@@ -86,6 +99,21 @@ export class CentroidTracker {
       obj.bbox = bboxes[inputIdx];
       obj.disappeared = 0;
       obj.trackAge++;
+
+      // Compute smoothed velocity (exponential moving average)
+      if (obj.previousCentroid) {
+        const rawVx = obj.centroid[0] - obj.previousCentroid[0];
+        const rawVy = obj.centroid[1] - obj.previousCentroid[1];
+        if (obj.velocity) {
+          const alpha = 0.6; // weight for new measurement
+          obj.velocity = [
+            obj.velocity[0] * (1 - alpha) + rawVx * alpha,
+            obj.velocity[1] * (1 - alpha) + rawVy * alpha,
+          ];
+        } else {
+          obj.velocity = [rawVx, rawVy];
+        }
+      }
 
       // Confirm track after minTrackAge frames (fallback unique counting)
       if (obj.trackAge === this.minTrackAge && !this.confirmedIds.has(id)) {
@@ -130,6 +158,7 @@ export class CentroidTracker {
       lastCrossingTime: null,
       trackAge: 0,
       entryTime: null,
+      velocity: null,
     });
     this.nextId++;
   }
