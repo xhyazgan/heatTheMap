@@ -32,7 +32,7 @@ export const Analytics: React.FC = () => {
   if (!selectedStore) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-400">Baslamak icin header'dan bir magaza secin</p>
+        <p className="text-gray-500">Başlamak için header'dan bir mağaza seçin</p>
       </div>
     );
   }
@@ -40,23 +40,23 @@ export const Analytics: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Date Range Picker */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-400">Baslangic:</label>
+          <label className="text-sm text-gray-500">Başlangıç:</label>
           <input
             type="date"
             value={dateRange.start}
             onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-            className="bg-gray-700 text-sm text-white rounded px-3 py-1.5 border border-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="input text-sm py-1.5"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-400">Bitis:</label>
+          <label className="text-sm text-gray-500">Bitiş:</label>
           <input
             type="date"
             value={dateRange.end}
             onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-            className="bg-gray-700 text-sm text-white rounded px-3 py-1.5 border border-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="input text-sm py-1.5"
           />
         </div>
         <button
@@ -64,9 +64,9 @@ export const Analytics: React.FC = () => {
             const today = format(new Date(), 'yyyy-MM-dd');
             setDateRange({ start: today, end: today });
           }}
-          className="btn-secondary text-sm py-1.5 px-3"
+          className="btn-secondary text-sm py-1.5 px-4"
         >
-          Bugun
+          Bugün
         </button>
       </div>
 

@@ -9,7 +9,7 @@ export const Layout: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-900">
+    <div className="flex h-screen bg-slate-950">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />

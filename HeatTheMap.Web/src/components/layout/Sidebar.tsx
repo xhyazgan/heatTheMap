@@ -46,9 +46,9 @@ export const Sidebar: React.FC = () => {
   const { username } = useAuthStore();
 
   return (
-    <aside className="w-16 bg-gray-800 border-r border-gray-700 flex flex-col items-center py-4">
+    <aside className="w-16 bg-slate-900/80 backdrop-blur-xl border-r border-white/5 flex flex-col items-center py-4">
       {/* Logo */}
-      <div className="w-9 h-9 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-sm mb-8">
+      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm mb-8 shadow-lg shadow-primary-500/25">
         H
       </div>
 
@@ -60,23 +60,30 @@ export const Sidebar: React.FC = () => {
             to={item.to}
             end={item.to === '/'}
             className={({ isActive }) =>
-              `relative w-10 h-10 flex items-center justify-center rounded-lg transition-colors group ${
+              `relative w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200 group ${
                 isActive
-                  ? 'bg-gray-700 text-primary-400 border-l-2 border-primary-500'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                  ? 'bg-primary-500/15 text-primary-400 shadow-sm shadow-primary-500/10'
+                  : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
               }`
             }
           >
-            {item.icon}
-            <span className="absolute left-full ml-2 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-              {item.label}
-            </span>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary-400 rounded-r-full" />
+                )}
+                {item.icon}
+                <span className="absolute left-full ml-3 px-3 py-1.5 text-xs font-medium text-white bg-slate-800 border border-white/10 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-all duration-200">
+                  {item.label}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
       {/* User avatar */}
-      <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs text-white font-medium" title={username || 'User'}>
+      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs text-primary-300 font-medium" title={username || 'User'}>
         {(username || 'U').charAt(0).toUpperCase()}
       </div>
     </aside>

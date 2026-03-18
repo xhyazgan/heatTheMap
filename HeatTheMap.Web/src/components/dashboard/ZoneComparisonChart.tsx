@@ -32,33 +32,34 @@ export const ZoneComparisonChart: React.FC<ZoneComparisonChartProps> = ({
   if (loading) {
     return (
       <div className="card p-6 animate-pulse">
-        <div className="h-8 bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div className="h-64 bg-gray-700 rounded"></div>
+        <div className="h-6 bg-white/5 rounded-lg w-1/3 mb-4"></div>
+        <div className="h-64 bg-white/5 rounded-lg"></div>
       </div>
     );
   }
 
   return (
     <div className="card p-6">
-      <h3 className="text-lg font-semibold text-white mb-4">Top Zones</h3>
+      <h3 className="text-lg font-semibold text-white mb-4">Popüler Bölgeler</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} layout="horizontal">
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis type="number" stroke="#9CA3AF" />
-          <YAxis dataKey="zone" type="category" stroke="#9CA3AF" width={80} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+          <XAxis type="number" stroke="#6b7280" />
+          <YAxis dataKey="zone" type="category" stroke="#6b7280" width={80} />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#1F2937',
-              border: '1px solid #374151',
-              borderRadius: '0.5rem',
+              backgroundColor: 'rgba(15,23,42,0.95)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '0.75rem',
               color: '#fff',
+              backdropFilter: 'blur(12px)',
             }}
             formatter={((value: number | undefined, name: string | undefined) => [
-              name === 'visits' ? `${value ?? 0} visits` : `${value ?? 0}%`,
-              name === 'visits' ? 'Visits' : 'Percentage',
+              name === 'visits' ? `${value ?? 0} ziyaret` : `${value ?? 0}%`,
+              name === 'visits' ? 'Ziyaret' : 'Yüzde',
             ]) as any}
           />
-          <Bar dataKey="visits" fill="#EF4444" name="Visits" />
+          <Bar dataKey="visits" fill="#f43f5e" name="Ziyaretler" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

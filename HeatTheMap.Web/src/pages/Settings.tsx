@@ -22,7 +22,7 @@ export const Settings: React.FC = () => {
     if (!selectedStore) return;
 
     const confirmed = window.confirm(
-      'Tum analitik verileri kalici olarak silinecektir. Devam etmek istediginize emin misiniz?'
+      'Tüm analitik verileri kalıcı olarak silinecektir. Devam etmek istediğinize emin misiniz?'
     );
 
     if (!confirmed) return;
@@ -38,7 +38,7 @@ export const Settings: React.FC = () => {
   if (!selectedStore) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-400">Baslamak icin header'dan bir magaza secin</p>
+        <p className="text-gray-500">Başlamak için header'dan bir mağaza seçin</p>
       </div>
     );
   }
@@ -48,23 +48,23 @@ export const Settings: React.FC = () => {
       {/* Store Info */}
       {currentStore && (
         <div className="card p-5">
-          <h3 className="text-sm font-medium text-gray-400 mb-3">Magaza Bilgisi</h3>
+          <h3 className="text-sm font-medium text-gray-400 mb-4">Mağaza Bilgisi</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">Ad:</span>
-              <span className="ml-2 text-white">{currentStore.name}</span>
+            <div className="p-3 rounded-xl bg-white/[0.03]">
+              <span className="text-gray-500 block text-xs mb-1">Ad</span>
+              <span className="text-white">{currentStore.name}</span>
             </div>
-            <div>
-              <span className="text-gray-500">Konum:</span>
-              <span className="ml-2 text-white">{currentStore.location}</span>
+            <div className="p-3 rounded-xl bg-white/[0.03]">
+              <span className="text-gray-500 block text-xs mb-1">Konum</span>
+              <span className="text-white">{currentStore.location}</span>
             </div>
-            <div>
-              <span className="text-gray-500">Adres:</span>
-              <span className="ml-2 text-white">{currentStore.address}</span>
+            <div className="p-3 rounded-xl bg-white/[0.03]">
+              <span className="text-gray-500 block text-xs mb-1">Adres</span>
+              <span className="text-white">{currentStore.address}</span>
             </div>
-            <div>
-              <span className="text-gray-500">Alan:</span>
-              <span className="ml-2 text-white">{currentStore.floorArea} m2</span>
+            <div className="p-3 rounded-xl bg-white/[0.03]">
+              <span className="text-gray-500 block text-xs mb-1">Alan</span>
+              <span className="text-white">{currentStore.floorArea} m²</span>
             </div>
           </div>
         </div>
@@ -72,7 +72,7 @@ export const Settings: React.FC = () => {
 
       {/* Entry Line Editor - Inline */}
       <div className="card p-5">
-        <h3 className="text-sm font-medium text-gray-400 mb-3">Entry Line Yapilandirmasi</h3>
+        <h3 className="text-sm font-medium text-gray-400 mb-4">Giriş Çizgisi Yapılandırması</h3>
         <EntryLineEditor
           storeId={selectedStore}
           existingLine={entryLineData}
@@ -82,40 +82,40 @@ export const Settings: React.FC = () => {
       </div>
 
       {/* Danger Zone */}
-      <div className="card p-5 border border-red-900/50">
-        <h3 className="text-sm font-medium text-red-400 mb-3">Tehlikeli Bolge</h3>
+      <div className="card p-5 border-red-500/20">
+        <h3 className="text-sm font-medium text-red-400 mb-4">Tehlikeli Bölge</h3>
         <div className="space-y-4">
           <div>
-            <h4 className="text-white font-medium">Magaza Verilerini Sifirla</h4>
-            <p className="text-sm text-gray-400 mt-1">
-              Bu islem secili magazanin tum analitik verilerini (gunluk ziyaretci, isi haritasi, musteri rotalari) kalici olarak siler. Bu islem geri alinamaz.
+            <h4 className="text-white font-medium">Mağaza Verilerini Sıfırla</h4>
+            <p className="text-sm text-gray-500 mt-1">
+              Bu işlem seçili mağazanın tüm analitik verilerini (günlük ziyaretçi, ısı haritası, müşteri rotaları) kalıcı olarak siler. Bu işlem geri alınamaz.
             </p>
           </div>
 
           {resetResult && (
-            <div className="bg-green-900/30 border border-green-700 rounded-lg p-3 text-sm text-green-300">
-              Veriler basariyla silindi: {resetResult.dailyFootfalls} gunluk ziyaretci, {resetResult.heatmapData} isi haritasi, {resetResult.customerRoutes} musteri rotasi kaydi silindi.
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-sm text-emerald-300">
+              Veriler başarıyla silindi: {resetResult.dailyFootfalls} günlük ziyaretçi, {resetResult.heatmapData} ısı haritası, {resetResult.customerRoutes} müşteri rotası kaydı silindi.
             </div>
           )}
 
           {resetMutation.isError && (
-            <div className="bg-red-900/30 border border-red-700 rounded-lg p-3 text-sm text-red-300">
-              Bir hata olustu: {
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-300">
+              Bir hata oluştu: {
                 resetMutation.error instanceof AxiosError
                   ? resetMutation.error.response?.data || resetMutation.error.message
                   : resetMutation.error instanceof Error
                     ? resetMutation.error.message
                     : 'Bilinmeyen hata'
-              }. Lutfen tekrar deneyin.
+              }. Lütfen tekrar deneyin.
             </div>
           )}
 
           <button
             onClick={handleReset}
             disabled={resetMutation.isPending}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            className="btn-danger text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {resetMutation.isPending ? 'Siliniyor...' : 'Verileri Sifirla'}
+            {resetMutation.isPending ? 'Siliniyor...' : 'Verileri Sıfırla'}
           </button>
         </div>
       </div>

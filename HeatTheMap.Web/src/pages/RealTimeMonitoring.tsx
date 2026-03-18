@@ -35,7 +35,7 @@ export const RealTimeMonitoring: React.FC = () => {
   if (!selectedStore) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-400">Baslamak icin header'dan bir magaza secin</p>
+        <p className="text-gray-500">Başlamak için header'dan bir mağaza seçin</p>
       </div>
     );
   }
@@ -55,14 +55,14 @@ export const RealTimeMonitoring: React.FC = () => {
         {/* Entry Line Button */}
         <button
           onClick={() => setIsEntryLineEditorOpen(true)}
-          className="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+          className="w-full btn-secondary py-2.5 text-sm"
         >
-          Entry Line Ayarla
+          Giriş Çizgisi Ayarla
         </button>
 
         {/* Mini Heatmap */}
         <div className="card p-4">
-          <h3 className="text-sm font-medium text-gray-400 mb-3">Isil Harita</h3>
+          <h3 className="text-sm font-medium text-gray-400 mb-3">Isı Haritası</h3>
           <HeatmapVisualization
             data={latestHeatmap?.zoneMatrix}
             width={latestHeatmap?.gridWidth}
