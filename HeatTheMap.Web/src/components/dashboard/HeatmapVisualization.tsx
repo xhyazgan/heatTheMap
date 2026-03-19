@@ -19,6 +19,7 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d');
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const resetRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current || !data) return;
@@ -108,27 +109,37 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-white">Magaza Isi Haritasi</h3>
-        <div className="flex items-center gap-1 bg-gray-800 rounded-lg p-0.5">
-          <button
-            onClick={() => setViewMode('2d')}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-              viewMode === '2d'
-                ? 'bg-sky-600 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            2D
-          </button>
-          <button
-            onClick={() => setViewMode('3d')}
-            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-              viewMode === '3d'
-                ? 'bg-sky-600 text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            3D
-          </button>
+        <div className="flex items-center gap-2">
+          {viewMode === '3d' && (
+            <button
+              onClick={() => resetRef.current?.()}
+              className="px-3 py-1 text-xs font-medium rounded-md transition-colors bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600"
+            >
+              Sifirla
+            </button>
+          )}
+          <div className="flex items-center gap-0.5 bg-gray-800 rounded-lg p-0.5 border border-gray-700">
+            <button
+              onClick={() => setViewMode('2d')}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${
+                viewMode === '2d'
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
+            >
+              2D
+            </button>
+            <button
+              onClick={() => setViewMode('3d')}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${
+                viewMode === '3d'
+                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+              }`}
+            >
+              3D
+            </button>
+          </div>
         </div>
       </div>
 
@@ -140,7 +151,7 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
             </div>
           }
         >
-          <HeatmapVisualization3D data={displayData} width={width} height={height} />
+          <HeatmapVisualization3D data={displayData} width={width} height={height} onResetRef={resetRef} />
         </Suspense>
       ) : (
         <div className="bg-gray-900 rounded-lg p-4">

@@ -8,6 +8,7 @@ import type {
   Store,
   HeatmapGridData,
   DetectionSubmission,
+  ResetStoreDataResponse,
 } from '../types';
 
 export const analyticsService = {
@@ -70,5 +71,10 @@ export const analyticsService = {
 
   async submitDetection(data: DetectionSubmission): Promise<void> {
     await api.post('/api/analytics/detection', data);
+  },
+
+  async resetStoreData(storeId: number): Promise<ResetStoreDataResponse> {
+    const response = await api.delete<ResetStoreDataResponse>(`/api/analytics/store/${storeId}/reset`);
+    return response.data;
   },
 };

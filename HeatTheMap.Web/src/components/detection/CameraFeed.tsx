@@ -65,9 +65,9 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ entryLine, videoSource, 
     }
     // Clear video element
     if (videoRef.current) {
+      videoRef.current.onerror = null;
       videoRef.current.srcObject = null;
-      videoRef.current.src = '';
-      videoRef.current.load();
+      videoRef.current.removeAttribute('src');
     }
     stopDetection();
     setSourceConnected(false);
@@ -109,15 +109,32 @@ export const CameraFeed: React.FC<CameraFeedProps> = ({ entryLine, videoSource, 
         });
         streamRef.current = stream;
         video.srcObject = stream;
+        video.onerror = null; // srcObject streams don't use onerror
+        await video.play();
         setSourceConnected(true);
       } else if (source.type === 'file') {
         const objectUrl = URL.createObjectURL(source.file);
         objectUrlRef.current = objectUrl;
+        video.onerror = null;
         video.src = objectUrl;
         video.loop = true;
-        video.play().catch(() => {
-          setSourceError('Video oynatilamadi');
+        video.muted = true;
+        video.load();
+        await new Promise<void>((resolve, reject) => {
+          const onLoaded = () => {
+            video.removeEventListener('loadeddata', onLoaded);
+            video.removeEventListener('error', onError);
+            resolve();
+          };
+          const onError = () => {
+            video.removeEventListener('loadeddata', onLoaded);
+            video.removeEventListener('error', onError);
+            reject(new Error('Video yuklenemedi'));
+          };
+          video.addEventListener('loadeddata', onLoaded);
+          video.addEventListener('error', onError);
         });
+        await video.play();
         setSourceConnected(true);
       } else if (source.type === 'url') {
         let targetUrl = source.url;

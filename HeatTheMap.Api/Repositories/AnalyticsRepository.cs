@@ -102,4 +102,21 @@ public class AnalyticsRepository : IAnalyticsRepository
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task<(int footfallCount, int heatmapCount, int routeCount)> ResetStoreDataAsync(int storeId)
+    {
+        var footfallCount = await _context.DailyFootfalls
+            .Where(f => f.StoreId == storeId)
+            .ExecuteDeleteAsync();
+
+        var heatmapCount = await _context.HeatmapData
+            .Where(h => h.StoreId == storeId)
+            .ExecuteDeleteAsync();
+
+        var routeCount = await _context.CustomerRoutes
+            .Where(r => r.StoreId == storeId)
+            .ExecuteDeleteAsync();
+
+        return (footfallCount, heatmapCount, routeCount);
+    }
 }

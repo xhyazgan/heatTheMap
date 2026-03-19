@@ -19,7 +19,7 @@ interface Point {
 }
 
 export class DirectionalEntryTracker {
-  private tracker = new CentroidTracker(30, 100);
+  private tracker = new CentroidTracker(30, 200);
   private entryLine: EntryLineConfig | null = null;
   private videoWidth = 640;
   private videoHeight = 480;
@@ -46,7 +46,9 @@ export class DirectionalEntryTracker {
 
     return {
       currentCount: this.tracker.currentCount,
-      uniqueVisitors: this.tracker.totalUnique,
+      uniqueVisitors: this.entryLine
+        ? this._uniqueVisitors
+        : this.tracker.totalUnique,
       exitCount: this._exitCount,
       trackedObjects,
     };
@@ -176,7 +178,9 @@ export class DirectionalEntryTracker {
   }
 
   get uniqueVisitors(): number {
-    return this.tracker.totalUnique;
+    return this.entryLine
+      ? this._uniqueVisitors
+      : this.tracker.totalUnique;
   }
 
   get exitCount(): number {

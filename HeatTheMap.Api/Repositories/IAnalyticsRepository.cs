@@ -14,4 +14,5 @@ public interface IAnalyticsRepository
     Task<int> GetPeakHourAsync(int storeId, DateOnly date);
     Task<HeatmapData> AddHeatmapDataAsync(HeatmapData data);
     Task UpsertFootfallAsync(DailyFootfall footfall);
+    Task<(int footfallCount, int heatmapCount, int routeCount)> ResetStoreDataAsync(int storeId);
 }

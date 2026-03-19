@@ -11,4 +11,5 @@ public interface IAnalyticsService
     Task<PeakHoursDto> GetPeakHoursAsync(int storeId, int days);
     Task<HeatmapDataDto?> GetLatestHeatmapDataAsync(int storeId);
     Task SubmitDetectionAsync(DetectionSubmissionDto dto);
+    Task<(int footfallCount, int heatmapCount, int routeCount)> ResetStoreDataAsync(int storeId);
 }

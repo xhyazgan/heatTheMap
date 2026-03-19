@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { analyticsService } from '../services/analytics.service';
 
 export const useDailySummary = (storeId: number | null, date: string) => {
@@ -61,5 +61,21 @@ export const useLatestHeatmap = (storeId: number | null) => {
     queryFn: () => analyticsService.getLatestHeatmap(storeId!),
     enabled: !!storeId,
     refetchInterval: 30000, // Refresh every 30 seconds
+  });
+};
+
+export const useResetStoreData = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (storeId: number) => analyticsService.resetStoreData(storeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['latestHeatmap'] });
+      queryClient.invalidateQueries({ queryKey: ['dailySummary'] });
+      queryClient.invalidateQueries({ queryKey: ['hourlyDistribution'] });
+      queryClient.invalidateQueries({ queryKey: ['weeklyTrends'] });
+      queryClient.invalidateQueries({ queryKey: ['zonePerformance'] });
+      queryClient.invalidateQueries({ queryKey: ['peakHours'] });
+    },
   });
 };
